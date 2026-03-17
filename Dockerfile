@@ -39,8 +39,8 @@ RUN if [ ! -f /var/www/html/.env ]; then \
 RUN php artisan key:generate --force || true
 
 # Install PHP dependencies
-# First try with composer.lock, then fallback to update if needed
-RUN composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction || composer update --no-dev --optimize-autoloader --prefer-dist --no-interaction
+# Clean composer cache first
+RUN composer clear-cache && composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
 
 # Install Node dependencies and build
 # Install glob explicitly as it's required by vite.config.js
