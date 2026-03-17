@@ -46,8 +46,8 @@ RUN composer clear-cache && composer install --no-dev --optimize-autoloader --pr
 # Install glob explicitly as it's required by vite.config.js
 RUN npm cache clean --force && npm install --legacy-peer-deps --no-audit && npm install glob --save-dev && npm run build
 
-# Set permissions
-RUN chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
+# Set ownership for the entire application to www-data
+RUN chown -R www-data:www-data /var/www/html
 
 # Run migrations during build
 RUN php artisan config:clear && php artisan migrate --force || echo "Migration completed or failed"
