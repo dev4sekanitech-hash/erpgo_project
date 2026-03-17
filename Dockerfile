@@ -30,6 +30,14 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . /var/www/html
 
+# Copy .env.example to .env if .env doesn't exist
+RUN if [ ! -f /var/www/html/.env ]; then \
+    cp /var/www/html/.env.example /var/www/html/.env; \
+    fi
+
+# Generate APP_KEY if not set
+RUN php artisan key:generate --force || true
+
 # Install PHP dependencies
 # First try with composer.lock, then fallback to update if needed
 RUN composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction || composer update --no-dev --optimize-autoloader --prefer-dist --no-interaction
@@ -46,6 +54,10 @@ RUN php artisan config:clear && php artisan migrate --force || echo "Migration c
 
 # Expose port 10000
 EXPOSE 10000
+
+# Set default environment variables for runtime
+ENV APP_ENV=production
+ENV APP_DEBUG=false
 
 # Start Apache
 CMD ["apache2-foreground"]
