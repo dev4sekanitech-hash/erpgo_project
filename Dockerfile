@@ -41,6 +41,9 @@ RUN npm cache clean --force && npm install --legacy-peer-deps --no-audit && npm 
 # Set permissions
 RUN chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Run migrations during build
+RUN php artisan config:clear && php artisan migrate --force || echo "Migration completed or failed"
+
 # Expose port 10000
 EXPOSE 10000
 
