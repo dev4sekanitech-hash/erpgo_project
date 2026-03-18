@@ -65,6 +65,7 @@ EXPOSE 10000
 # Set default environment variables for runtime
 ENV APP_ENV=production
 ENV APP_DEBUG=false
+ENV APP_URL=https://erp-project-1-b78v.onrender.com
 
 # Start the startup script
 CMD ["/start.sh"]
