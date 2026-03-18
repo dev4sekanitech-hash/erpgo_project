@@ -43,6 +43,11 @@ RUN php artisan key:generate --force || true
 # Clean composer cache first
 RUN composer clear-cache && composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
 
+# Set environment variables for build
+ENV APP_ENV=production
+ENV APP_DEBUG=false
+ENV APP_URL=https://erp-project-1-b78v.onrender.com
+
 # Install Node dependencies and build
 # Install glob explicitly as it's required by vite.config.js
 RUN npm cache clean --force && npm install --legacy-peer-deps --no-audit && npm install glob --save-dev && npm run build
@@ -61,11 +66,6 @@ RUN echo "Listen 10000" >> /etc/apache2/ports.conf
 
 # Expose port 10000
 EXPOSE 10000
-
-# Set default environment variables for runtime
-ENV APP_ENV=production
-ENV APP_DEBUG=false
-ENV APP_URL=https://erp-project-1-b78v.onrender.com
 
 # Start the startup script
 CMD ["/start.sh"]
