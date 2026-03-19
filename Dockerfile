@@ -46,8 +46,8 @@ RUN composer clear-cache && composer install --no-dev --optimize-autoloader --pr
 # Set environment variables for build
 ENV APP_ENV=production
 ENV APP_DEBUG=false
-ENV APP_URL=https://erp-project-1-b78v.onrender.com
-ENV ASSET_URL=https://erp-project-1-b78v.onrender.com
+ENV APP_URL=https://erpgo-project.onrender.com
+ENV ASSET_URL=https://erpgo-project.onrender.com
 
 # Install Node dependencies and build
 # Install glob explicitly as it's required by vite.config.js
