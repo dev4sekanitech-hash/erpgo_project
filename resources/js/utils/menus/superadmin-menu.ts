@@ -1,4 +1,4 @@
-import { LayoutGrid, Users, Building2, Settings, Shield, Image, Package, CreditCard, FileText, Ticket, Mail, Bell, Headphones, HeartHandshake, Briefcase, UserCheck, ClipboardList, FileUser, MessageSquare} from 'lucide-react';
+import { LayoutGrid, Users, Building2, Settings, Shield, Image, Package, CreditCard, FileText, Ticket, Mail, Bell, Headphones, HeartHandshake, Briefcase, UserCheck, ClipboardList, FileText as FileUser, MessageSquare} from 'lucide-react';
 import { NavItem } from '@/types';
 
 export const getSuperAdminMenu = (t: (key: string) => string): NavItem[] => [
@@ -125,7 +125,7 @@ export const getSuperAdminMenu = (t: (key: string) => string): NavItem[] => [
             {
                 title: t('Staff Requests'),
                 href: route('starrlight.staff-requests.index'),
-                icon: FileUser,
+                icon: FileText,
                 permission: 'manage-starrlight-staff-requests',
             },
             {
