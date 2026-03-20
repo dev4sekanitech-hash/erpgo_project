@@ -21,3 +21,6 @@ package-lock.json
 /.fleet
 /.idea
 /.vscode
+/login-issue-report.md
+/login-issue-summary.txt
+/starrlight-implementation-guide.txt
