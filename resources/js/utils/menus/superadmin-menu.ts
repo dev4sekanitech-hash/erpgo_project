@@ -1,4 +1,4 @@
-import { LayoutGrid, Users, Building2, Settings, Shield, Image, Package, CreditCard, FileText, Ticket, Mail, Bell, Headphones} from 'lucide-react';
+import { LayoutGrid, Users, Building2, Settings, Shield, Image, Package, CreditCard, FileText, Ticket, Mail, Bell, Headphones, HeartHandshake, Briefcase, UserCheck, ClipboardList, FileUser, MessageSquare} from 'lucide-react';
 import { NavItem } from '@/types';
 
 export const getSuperAdminMenu = (t: (key: string) => string): NavItem[] => [
@@ -96,5 +96,50 @@ export const getSuperAdminMenu = (t: (key: string) => string): NavItem[] => [
         icon: Settings,
         permission: 'manage-settings',
         order: 3050,
+    },
+    // Starrlight Menu
+    {
+        title: t('Starrlight'),
+        icon: HeartHandshake,
+        permission: 'manage-starrlight',
+        order: 3100,
+        children: [
+            {
+                title: t('Caregivers'),
+                href: route('starrlight.caregivers.index'),
+                icon: UserCheck,
+                permission: 'manage-starrlight-caregivers',
+            },
+            {
+                title: t('Jobs'),
+                href: route('starrlight.jobs.index'),
+                icon: Briefcase,
+                permission: 'manage-starrlight-jobs',
+            },
+            {
+                title: t('Applications'),
+                href: route('starrlight.applications.index'),
+                icon: ClipboardList,
+                permission: 'manage-starrlight-applications',
+            },
+            {
+                title: t('Staff Requests'),
+                href: route('starrlight.staff-requests.index'),
+                icon: FileUser,
+                permission: 'manage-starrlight-staff-requests',
+            },
+            {
+                title: t('Careers'),
+                href: route('starrlight.careers.index'),
+                icon: FileText,
+                permission: 'manage-starrlight-careers',
+            },
+            {
+                title: t('Contact Messages'),
+                href: route('starrlight.contacts.index'),
+                icon: MessageSquare,
+                permission: 'manage-starrlight-contacts',
+            },
+        ]
     },
 ];
