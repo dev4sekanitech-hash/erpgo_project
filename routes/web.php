@@ -30,6 +30,12 @@ use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\SalesInvoiceController;
 use App\Http\Controllers\SalesProposalController;
 use App\Http\Controllers\SalesReturnController;
+use App\Http\Controllers\Starrlight\CaregiverController;
+use App\Http\Controllers\Starrlight\JobController;
+use App\Http\Controllers\Starrlight\ApplicationController;
+use App\Http\Controllers\Starrlight\StaffRequestController;
+use App\Http\Controllers\Starrlight\CareerController;
+use App\Http\Controllers\Starrlight\ContactController;
 use Inertia\Inertia;
 
 
@@ -160,7 +166,7 @@ Route::middleware(['auth', 'verified', 'PlanModuleCheck'])->group(function () {
     Route::get('notification-templates/{notificationTemplate}/language/{lang}', [NotificationTemplateController::class, 'getLanguageContent'])->name('notification-templates.language-content');
     Route::put('notification-templates/{notificationTemplate}', [NotificationTemplateController::class, 'update'])->name('notification-templates.update');
 
-     // Proposal Routes
+    // Proposal Routes
     Route::resource('sales-proposals', SalesProposalController::class);
     Route::get('sales-proposals/{salesProposal}/print', [SalesProposalController::class, 'print'])->name('sales-proposals.print');
     Route::post('sales-proposals/{salesProposal}/sent', [SalesProposalController::class, 'sent'])->name('sales-proposals.sent');
@@ -193,11 +199,42 @@ Route::middleware(['auth', 'verified', 'PlanModuleCheck'])->group(function () {
     Route::delete('media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
     Route::post('media/directories', [MediaController::class, 'createDirectory'])->name('media.directories.create');
     Route::patch('media/{id}/directory', [MediaController::class, 'updateMediaDirectory'])->name('media.directory.update');
+
+    // Starrlight Routes
+    Route::get('starrlight/caregivers', [CaregiverController::class, 'index'])->name('starrlight.caregivers.index');
+    Route::get('starrlight/caregivers/{id}', [CaregiverController::class, 'show'])->name('starrlight.caregivers.show');
+    Route::patch('starrlight/caregivers/{id}/status', [CaregiverController::class, 'updateStatus'])->name('starrlight.caregivers.update-status');
+    Route::delete('starrlight/caregivers/{id}', [CaregiverController::class, 'destroy'])->name('starrlight.caregivers.destroy');
+
+    Route::get('starrlight/jobs', [JobController::class, 'index'])->name('starrlight.jobs.index');
+    Route::get('starrlight/jobs/create', [JobController::class, 'create'])->name('starrlight.jobs.create');
+    Route::post('starrlight/jobs', [JobController::class, 'store'])->name('starrlight.jobs.store');
+    Route::get('starrlight/jobs/{id}', [JobController::class, 'show'])->name('starrlight.jobs.show');
+    Route::get('starrlight/jobs/{id}/edit', [JobController::class, 'edit'])->name('starrlight.jobs.edit');
+    Route::patch('starrlight/jobs/{id}', [JobController::class, 'update'])->name('starrlight.jobs.update');
+    Route::delete('starrlight/jobs/{id}', [JobController::class, 'destroy'])->name('starrlight.jobs.destroy');
+    Route::patch('starrlight/jobs/{id}/status', [JobController::class, 'updateStatus'])->name('starrlight.jobs.update-status');
+
+    Route::get('starrlight/applications', [ApplicationController::class, 'index'])->name('starrlight.applications.index');
+    Route::get('starrlight/applications/{id}', [ApplicationController::class, 'show'])->name('starrlight.applications.show');
+    Route::patch('starrlight/applications/{id}/status', [ApplicationController::class, 'updateStatus'])->name('starrlight.applications.update-status');
+
+    Route::get('starrlight/staff-requests', [StaffRequestController::class, 'index'])->name('starrlight.staff-requests.index');
+    Route::get('starrlight/staff-requests/{id}', [StaffRequestController::class, 'show'])->name('starrlight.staff-requests.show');
+    Route::post('starrlight/staff-requests/{id}/approve', [StaffRequestController::class, 'approve'])->name('starrlight.staff-requests.approve');
+    Route::post('starrlight/staff-requests/{id}/reject', [StaffRequestController::class, 'reject'])->name('starrlight.staff-requests.reject');
+
+    Route::get('starrlight/careers', [CareerController::class, 'index'])->name('starrlight.careers.index');
+    Route::get('starrlight/careers/{id}', [CareerController::class, 'show'])->name('starrlight.careers.show');
+
+    Route::get('starrlight/contacts', [ContactController::class, 'index'])->name('starrlight.contacts.index');
+    Route::get('starrlight/contacts/{id}', [ContactController::class, 'show'])->name('starrlight.contacts.show');
+    Route::delete('starrlight/contacts/{id}', [ContactController::class, 'destroy'])->name('starrlight.contacts.destroy');
 });
 
 Route::get('/translations/{locale}', [TranslationController::class, 'getTranslations'])->name('languages.translations');
 Route::post('/cookie-consent-log', [SettingController::class, 'logCookieConsent'])->name('cookie.consent.log');
 
-require __DIR__.'/installer.php';
-require __DIR__.'/updater.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/installer.php';
+require __DIR__ . '/updater.php';
+require __DIR__ . '/auth.php';
