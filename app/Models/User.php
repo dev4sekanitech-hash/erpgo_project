@@ -107,7 +107,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'vendor',
         'doctor',
         'student',
-        'parent'
+        'parent',
+        'caregiver'
     ];
 
     public function scopeEmp($query, $additionalTypes = [], $includeTypes = [])

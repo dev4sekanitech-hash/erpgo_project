@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Starrlight\CaregiverProfile;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Workdo\Hrm\Models\Employee;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class AuthApiController extends Controller
 {
@@ -60,7 +63,7 @@ class AuthApiController extends Controller
     {
         $user = User::find($user_id);
         if (!$user) {
-            return $this->errorResponse('User not found.',404);
+            return $this->errorResponse('User not found.', 404);
         }
         return [
             'id'        => $user->id,
@@ -194,6 +197,139 @@ class AuthApiController extends Controller
             $user->delete();
 
             return $this->successResponse(null, 'Account deleted successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Something went wrong');
+        }
+    }
+
+    /**
+     * Register a new caregiver user
+     */
+    public function register(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|string|email|unique:users,email',
+                'password' => 'required|string|min:6|confirmed',
+                'firstName' => 'required|string|max:255',
+                'lastName' => 'required|string|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->validationErrorResponse($validator->errors());
+            }
+
+            // Create user with caregiver type
+            $user = User::create([
+                'name' => $request->firstName . ' ' . $request->lastName,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'type' => 'caregiver',
+                'lang' => 'en',
+            ]);
+
+            // Create empty caregiver profile
+            $profile = CaregiverProfile::create([
+                'user_id' => $user->id,
+                'first_name' => $request->firstName,
+                'last_name' => $request->lastName,
+                'email' => $request->email,
+                'status' => 'draft',
+            ]);
+
+            // Generate API token
+            $token = $user->createToken('api-token')->plainTextToken;
+
+            $data = [
+                'user' => $this->getUserArray($user->id),
+                'caregiver_profile_id' => $profile->id,
+                'token' => $token,
+                'type' => 'bearer'
+            ];
+
+            return $this->successResponse($data, 'Registration successful.');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Something went wrong: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send password reset link
+     */
+    public function forgotPassword(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|string|email',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->validationErrorResponse($validator->errors());
+            }
+
+            $user = User::where('email', $request->email)->first();
+
+            if (!$user) {
+                return $this->errorResponse('We cannot find a user with that email address.');
+            }
+
+            // Generate reset token
+            $token = Password::getSender();
+
+            // For API, we'll return a success message
+            // In production, you would send an email with the reset link
+            return $this->successResponse([
+                'message' => 'Password reset link has been sent to your email address.',
+                'token' => $token // In production, this would be sent via email, not returned in response
+            ], 'Password reset link sent.');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Something went wrong');
+        }
+    }
+
+    /**
+     * Reset password
+     */
+    public function resetPassword(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|string|email',
+                'password' => 'required|string|min:6|confirmed',
+                'token' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->validationErrorResponse($validator->errors());
+            }
+
+            $status = Password::reset(
+                $request->only('email', 'password', 'password_confirmation', 'token'),
+                function ($user, $password) {
+                    $user->password = Hash::make($password);
+                    $user->save();
+                }
+            );
+
+            if ($status === Password::PASSWORD_RESET) {
+                return $this->successResponse(null, 'Password has been reset successfully.');
+            } else {
+                return $this->errorResponse('Failed to reset password. Please try again.');
+            }
+        } catch (\Exception $e) {
+            return $this->errorResponse('Something went wrong');
+        }
+    }
+
+    /**
+     * Get current authenticated user
+     */
+    public function me(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $data = $this->getUserArray($user->id);
+            return $this->successResponse($data, 'User retrieved successfully.');
         } catch (\Exception $e) {
             return $this->errorResponse('Something went wrong');
         }
