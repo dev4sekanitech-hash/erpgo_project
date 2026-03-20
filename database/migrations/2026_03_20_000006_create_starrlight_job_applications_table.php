@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('job_applications', function (Blueprint $table) {
+        Schema::create('starrlight_job_applications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('job_id')->constrained('jobs')->onDelete('cascade');
+            $table->foreignId('job_id')->constrained('starrlight_jobs')->onDelete('cascade');
             $table->foreignId('caregiver_profile_id')->constrained('caregiver_profiles')->onDelete('cascade');
             $table->enum('status', ['submitted', 'under_review', 'interview', 'rejected', 'hired'])->default('submitted');
             $table->timestamp('applied_at')->useCurrent();
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('job_applications');
+        Schema::dropIfExists('starrlight_job_applications');
     }
 };

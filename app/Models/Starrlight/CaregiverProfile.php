@@ -56,19 +56,6 @@ class CaregiverProfile extends Model
         return $this->hasMany(JobApplication::class, 'caregiver_profile_id');
     }
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::created(function ($profile) {
-            // Ensure user has caregiver type
-            if ($profile->user && $profile->user->type !== 'caregiver') {
-                $profile->user->type = 'caregiver';
-                $profile->user->save();
-            }
-        });
-    }
-
     public function getFullNameAttribute(): string
     {
         return $this->first_name . ' ' . $this->last_name;

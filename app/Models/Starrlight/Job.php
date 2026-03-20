@@ -12,6 +12,8 @@ class Job extends Model
 {
     use HasFactory;
 
+    protected $table = 'starrlight_jobs';
+
     protected $fillable = [
         'title',
         'description',

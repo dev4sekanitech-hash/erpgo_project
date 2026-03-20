@@ -10,6 +10,8 @@ class JobApplication extends Model
 {
     use HasFactory;
 
+    protected $table = 'starrlight_job_applications';
+
     protected $fillable = [
         'job_id',
         'caregiver_profile_id',
