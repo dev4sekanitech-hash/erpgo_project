@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Starrlight\Job;
 use Illuminate\Http\Request;
 
-class StarrlightJobController extends Controller
+class JobController extends Controller
 {
     public function index()
     {
@@ -70,5 +70,15 @@ class StarrlightJobController extends Controller
         $job = Job::findOrFail($id);
         $job->delete();
         return redirect()->route('starrlight.jobs.index')->with('success', 'Job deleted successfully.');
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $job = Job::findOrFail($id);
+        $validated = $request->validate([
+            'is_active' => 'required|boolean',
+        ]);
+        $job->update($validated);
+        return redirect()->route('starrlight.jobs.index')->with('success', 'Job status updated successfully.');
     }
 }

@@ -26,4 +26,11 @@ class CaregiverController extends Controller
         $profile->update(['status' => $request->status]);
         return redirect()->back()->with('success', 'Status updated successfully.');
     }
+
+    public function destroy($id)
+    {
+        $profile = CaregiverProfile::findOrFail($id);
+        $profile->delete();
+        return redirect()->route('starrlight.caregivers.index')->with('success', 'Caregiver deleted successfully.');
+    }
 }

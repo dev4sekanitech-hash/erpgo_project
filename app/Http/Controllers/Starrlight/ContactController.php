@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Starrlight\ContactMessage;
 use Illuminate\Http\Request;
 
-class StarrlightContactController extends Controller
+class ContactController extends Controller
 {
     public function index()
     {

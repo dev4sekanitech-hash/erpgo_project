@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Starrlight\StaffRequest;
 use Illuminate\Http\Request;
 
-class StarrlightStaffRequestController extends Controller
+class StaffRequestController extends Controller
 {
     public function index()
     {
@@ -25,5 +25,19 @@ class StarrlightStaffRequestController extends Controller
         $staffRequest = StaffRequest::findOrFail($id);
         $staffRequest->update(['status' => $request->status]);
         return redirect()->back()->with('success', 'Status updated successfully.');
+    }
+
+    public function approve($id)
+    {
+        $staffRequest = StaffRequest::findOrFail($id);
+        $staffRequest->update(['status' => 'approved']);
+        return redirect()->back()->with('success', 'Request approved successfully.');
+    }
+
+    public function reject($id)
+    {
+        $staffRequest = StaffRequest::findOrFail($id);
+        $staffRequest->update(['status' => 'rejected']);
+        return redirect()->back()->with('success', 'Request rejected successfully.');
     }
 }
