@@ -1,12 +1,20 @@
 import { useState } from "react";
 import { Head, usePage, router } from "@inertiajs/react";
 import { useTranslation } from "react-i18next";
-import { useDeleteHandler } from "@/hooks/useDeleteHandler";
 import AuthenticatedLayout from "@/layouts/authenticated-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
-import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Plus, Eye, Edit, Trash2, Briefcase } from "lucide-react";
 import {
     Tooltip,
@@ -20,12 +28,12 @@ import { StarrlightJobsProps, Job } from "../types";
 export default function JobsIndex() {
     const { t } = useTranslation();
     const { jobs, auth } = usePage<StarrlightJobsProps>().props;
+    const [deleteId, setDeleteId] = useState<number | null>(null);
 
-    const { deleteState, openDeleteDialog, closeDeleteDialog, confirmDelete } =
-        useDeleteHandler({
-            routeName: "starrlight.jobs.destroy",
-            defaultMessage: t("Are you sure you want to delete this job?"),
-        });
+    const handleDelete = (id: number) => {
+        router.delete(route("starrlight.jobs.destroy", id));
+        setDeleteId(null);
+    };
 
     const tableColumns = [
         {
@@ -123,7 +131,7 @@ export default function JobsIndex() {
                                             variant="ghost"
                                             size="sm"
                                             onClick={() =>
-                                                openDeleteDialog(record.id)
+                                                setDeleteId(record.id)
                                             }
                                             className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                                         >
@@ -180,13 +188,27 @@ export default function JobsIndex() {
                 </CardContent>
             </Card>
 
-            <ConfirmationDialog
-                open={deleteState.isOpen}
-                onClose={closeDeleteDialog}
-                onConfirm={confirmDelete}
-                title={t("Delete Job")}
-                message={deleteState.message}
-            />
+            <AlertDialog
+                open={!!deleteId}
+                onOpenChange={(open) => !open && setDeleteId(null)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t("Delete Job")}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t("Are you sure you want to delete this job?")}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => deleteId && handleDelete(deleteId)}
+                        >
+                            {t("Delete")}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AuthenticatedLayout>
     );
 }

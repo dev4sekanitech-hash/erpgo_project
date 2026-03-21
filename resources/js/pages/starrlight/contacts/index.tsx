@@ -1,10 +1,19 @@
+import { useState } from "react";
 import { Head, usePage, router } from "@inertiajs/react";
 import { useTranslation } from "react-i18next";
-import { useDeleteHandler } from "@/hooks/useDeleteHandler";
 import AuthenticatedLayout from "@/layouts/authenticated-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
-import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Eye, Trash2, MessageSquare } from "lucide-react";
 import {
@@ -19,12 +28,12 @@ import { StarrlightContactsProps, ContactMessage } from "../types";
 export default function ContactsIndex() {
     const { t } = useTranslation();
     const { contacts, auth } = usePage<StarrlightContactsProps>().props;
+    const [deleteId, setDeleteId] = useState<number | null>(null);
 
-    const { deleteState, openDeleteDialog, closeDeleteDialog, confirmDelete } =
-        useDeleteHandler({
-            routeName: "starrlight.contacts.destroy",
-            defaultMessage: t("Are you sure you want to delete this message?"),
-        });
+    const handleDelete = (id: number) => {
+        router.delete(route("starrlight.contacts.destroy", id));
+        setDeleteId(null);
+    };
 
     const tableColumns = [
         {
@@ -96,9 +105,7 @@ export default function ContactsIndex() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        onClick={() =>
-                                            openDeleteDialog(record.id)
-                                        }
+                                        onClick={() => setDeleteId(record.id)}
                                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -144,13 +151,29 @@ export default function ContactsIndex() {
                 </CardContent>
             </Card>
 
-            <ConfirmationDialog
-                open={deleteState.isOpen}
-                onClose={closeDeleteDialog}
-                onConfirm={confirmDelete}
-                title={t("Delete Message")}
-                message={deleteState.message}
-            />
+            <AlertDialog
+                open={!!deleteId}
+                onOpenChange={(open) => !open && setDeleteId(null)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {t("Delete Message")}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t("Are you sure you want to delete this message?")}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => deleteId && handleDelete(deleteId)}
+                        >
+                            {t("Delete")}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AuthenticatedLayout>
     );
 }

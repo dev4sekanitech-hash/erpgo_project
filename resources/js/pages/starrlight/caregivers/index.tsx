@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Head, usePage, router } from "@inertiajs/react";
 import { useTranslation } from "react-i18next";
 import { useDeleteHandler } from "@/hooks/useDeleteHandler";
@@ -6,8 +5,17 @@ import AuthenticatedLayout from "@/layouts/authenticated-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
-import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import { Plus, Eye, Trash2, UserCheck } from "lucide-react";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Eye, Trash2, UserCheck } from "lucide-react";
 import {
     Tooltip,
     TooltipContent,
@@ -16,18 +24,17 @@ import {
 } from "@/components/ui/tooltip";
 import NoRecordsFound from "@/components/no-records-found";
 import { StarrlightCaregiversProps, CaregiverProfile } from "../types";
+import { useState } from "react";
 
 export default function CaregiversIndex() {
     const { t } = useTranslation();
     const { caregivers, auth } = usePage<StarrlightCaregiversProps>().props;
+    const [deleteId, setDeleteId] = useState<number | null>(null);
 
-    const { deleteState, openDeleteDialog, closeDeleteDialog, confirmDelete } =
-        useDeleteHandler({
-            routeName: "starrlight.caregivers.destroy",
-            defaultMessage: t(
-                "Are you sure you want to delete this caregiver profile?",
-            ),
-        });
+    const handleDelete = (id: number) => {
+        router.delete(route("starrlight.caregivers.destroy", id));
+        setDeleteId(null);
+    };
 
     const tableColumns = [
         {
@@ -110,9 +117,7 @@ export default function CaregiversIndex() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        onClick={() =>
-                                            openDeleteDialog(record.id)
-                                        }
+                                        onClick={() => setDeleteId(record.id)}
                                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -158,13 +163,31 @@ export default function CaregiversIndex() {
                 </CardContent>
             </Card>
 
-            <ConfirmationDialog
-                open={deleteState.isOpen}
-                onClose={closeDeleteDialog}
-                onConfirm={confirmDelete}
-                title={t("Delete Caregiver")}
-                message={deleteState.message}
-            />
+            <AlertDialog
+                open={!!deleteId}
+                onOpenChange={(open) => !open && setDeleteId(null)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {t("Delete Caregiver")}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t(
+                                "Are you sure you want to delete this caregiver profile?",
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => deleteId && handleDelete(deleteId)}
+                        >
+                            {t("Delete")}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AuthenticatedLayout>
     );
 }

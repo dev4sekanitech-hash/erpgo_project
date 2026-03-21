@@ -23,6 +23,7 @@ interface JobFormData {
     shift_pattern: string;
     city: string;
     province: string;
+    [key: string]: string | boolean;
 }
 
 export default function CreateJob() {
@@ -42,7 +43,7 @@ export default function CreateJob() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.post(route("starrlight.jobs.store"), formData, {
+        router.post(route("starrlight.jobs.store"), formData as any, {
             onError: (errors) => {
                 setErrors(errors);
             },
@@ -52,8 +53,8 @@ export default function CreateJob() {
     return (
         <AuthenticatedLayout
             breadcrumbs={[
-                { label: t("Starrlight") },
-                { label: t("Jobs"), href: route("starrlight.jobs.index") },
+                { label: t("Starrlight"), url: route("starrlight.jobs.index") },
+                { label: t("Jobs"), url: route("starrlight.jobs.index") },
                 { label: t("Create") },
             ]}
             pageTitle={t("Create Job")}

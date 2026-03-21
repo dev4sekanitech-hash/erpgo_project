@@ -29,6 +29,7 @@ interface JobFormData {
     city: string;
     province: string;
     is_active: boolean;
+    [key: string]: string | boolean;
 }
 
 export default function EditJob() {
@@ -49,7 +50,7 @@ export default function EditJob() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.patch(route("starrlight.jobs.update", job.id), formData, {
+        router.patch(route("starrlight.jobs.update", job.id), formData as any, {
             onError: (errors) => {
                 setErrors(errors);
             },
@@ -59,8 +60,8 @@ export default function EditJob() {
     return (
         <AuthenticatedLayout
             breadcrumbs={[
-                { label: t("Starrlight") },
-                { label: t("Jobs"), href: route("starrlight.jobs.index") },
+                { label: t("Starrlight"), url: route("starrlight.jobs.index") },
+                { label: t("Jobs"), url: route("starrlight.jobs.index") },
                 { label: t("Edit") },
             ]}
             pageTitle={t("Edit Job")}
