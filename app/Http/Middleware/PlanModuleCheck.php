@@ -17,7 +17,7 @@ class PlanModuleCheck
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next,$moduleName = null): Response
+    public function handle(Request $request, Closure $next, $moduleName = null): Response
     {
         $user = Auth::user();
         if (!$user) {
@@ -30,7 +30,7 @@ class PlanModuleCheck
         } elseif ($user->hasRole('company')) {
             if (($user->plan_expire_date && now()->gt($user->plan_expire_date)) || ($user->active_plan == 0)) {
                 // Plan expired - only allow essential plan routes
-                $allowedRoutes = ['users.leave-impersonation','plans.index', 'plans.subscribe', 'plans.start-trial', 'plans.apply-coupon', 'payment.*.store','payment.*.status', 'bank-transfer.index','plans.assign-free'];
+                $allowedRoutes = ['users.leave-impersonation', 'plans.index', 'plans.subscribe', 'plans.start-trial', 'plans.apply-coupon', 'payment.*.store', 'payment.*.status', 'bank-transfer.index', 'plans.assign-free'];
                 if (!$request->routeIs($allowedRoutes)) {
                     return redirect()->route('plans.index')
                         ->with('error', 'Your plan has expired. Please renew your subscription.');
@@ -46,20 +46,17 @@ class PlanModuleCheck
             }
         }
 
-        if($moduleName != null)
-        {
-            $moduleName =  explode('-',$moduleName);
+        if ($moduleName != null) {
+            $moduleName =  explode('-', $moduleName);
             $status = false;
-            foreach($moduleName as $m)
-            {
+            foreach ($moduleName as $m) {
                 $status = module_is_active($m);
-                if($status == true)
-                {
+                if ($status == true) {
                     $response = $next($request);
                     return $response;
                 }
             }
-            return redirect()->route('dashboard')->with('error', __('Permission denied '));
+            return redirect()->route('plans.index')->with('error', __('Permission denied '));
         }
 
         $response = $next($request);
