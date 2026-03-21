@@ -5,18 +5,23 @@ namespace App\Http\Controllers\Starrlight;
 use App\Http\Controllers\Controller;
 use App\Models\Starrlight\Job;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class JobController extends Controller
 {
     public function index()
     {
-        $jobs = Job::orderBy('created_at', 'desc')->get();
-        return view('starrlight.jobs.index', compact('jobs'));
+        $jobs = Job::orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return Inertia::render('starrlight/jobs/index', [
+            'jobs' => $jobs,
+        ]);
     }
 
     public function create()
     {
-        return view('starrlight.jobs.create');
+        return Inertia::render('starrlight/jobs/create');
     }
 
     public function store(Request $request)
@@ -39,13 +44,17 @@ class JobController extends Controller
     public function show($id)
     {
         $job = Job::findOrFail($id);
-        return view('starrlight.jobs.show', compact('job'));
+        return Inertia::render('starrlight/jobs/show', [
+            'job' => $job,
+        ]);
     }
 
     public function edit($id)
     {
         $job = Job::findOrFail($id);
-        return view('starrlight.jobs.edit', compact('job'));
+        return Inertia::render('starrlight/jobs/edit', [
+            'job' => $job,
+        ]);
     }
 
     public function update(Request $request, $id)
