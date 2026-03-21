@@ -44,6 +44,13 @@ class PlanModuleCheck
                 return redirect()->route('login')
                     ->with('error', 'Company plan has expired. Please contact your administrator.');
             }
+
+            // Check if creator exists and has no valid plan
+            if (!$creator || $creator->active_plan == 0) {
+                Auth::logout();
+                return redirect()->route('login')
+                    ->with('error', 'No active company plan found. Please contact your administrator.');
+            }
         }
 
         if ($moduleName != null) {
