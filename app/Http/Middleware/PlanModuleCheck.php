@@ -70,6 +70,12 @@ class PlanModuleCheck
                     return $response;
                 }
             }
+            // For non-company users (staff, client, vendor), redirect to login with error
+            // instead of plans.index to avoid redirect loops
+            if (!$user->hasRole('company')) {
+                Auth::logout();
+                return redirect()->route('login')->with('error', __('You do not have access to this module. Please contact your administrator.'));
+            }
             return redirect()->route('plans.index')->with('error', __('Permission denied '));
         }
 
