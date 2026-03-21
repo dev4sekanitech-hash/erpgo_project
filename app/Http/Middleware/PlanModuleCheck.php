@@ -56,8 +56,15 @@ class PlanModuleCheck
         if ($moduleName != null) {
             $moduleName =  explode('-', $moduleName);
             $status = false;
+
+            // For sub-users, check the creator's (company's) modules
+            $checkUser = $user;
+            if (!$user->hasRole('company') && !$user->hasRole('superadmin') && $user->createdBy) {
+                $checkUser = $user->createdBy;
+            }
+
             foreach ($moduleName as $m) {
-                $status = module_is_active($m);
+                $status = module_is_active($m, $checkUser->id);
                 if ($status == true) {
                     $response = $next($request);
                     return $response;
