@@ -64,10 +64,16 @@ class PlanModuleCheck
             }
 
             foreach ($moduleName as $m) {
-                $status = module_is_active($m, $checkUser->id);
+                // Check if module is enabled globally first
+                $status = module_is_active($m);
+
+                // If globally enabled, check if it's available for this user
                 if ($status == true) {
-                    $response = $next($request);
-                    return $response;
+                    $availableModules = (new \App\Models\Plan())->getAvailableModulesForUser($checkUser->id);
+                    if (in_array($m, $availableModules)) {
+                        $response = $next($request);
+                        return $response;
+                    }
                 }
             }
             // For non-company users (staff, client, vendor), redirect to login with error
