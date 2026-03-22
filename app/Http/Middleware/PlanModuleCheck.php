@@ -6,7 +6,6 @@ use Closure;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpFoundation\Response;
@@ -64,15 +63,6 @@ class PlanModuleCheck
                 $checkUser = $user->createdBy;
             }
 
-            // Debug: Log what's happening
-            \Log::info('PlanModuleCheck debug', [
-                'user_id' => $user->id,
-                'user_type' => $user->type,
-                'checkUser_id' => $checkUser->id,
-                'active_plan' => $checkUser->active_plan,
-                'moduleName' => $moduleName,
-            ]);
-
             foreach ($moduleName as $m) {
                 // Check if module is enabled globally first
                 $status = module_is_active($m);
@@ -80,15 +70,6 @@ class PlanModuleCheck
                 // If globally enabled, check if it's available for this user
                 if ($status == true) {
                     $availableModules = (new \App\Models\Plan())->getAvailableModulesForUser($checkUser->id);
-
-                    // Debug: Log available modules
-                    \Log::info('Module check debug', [
-                        'module' => $m,
-                        'is_active_globally' => $status,
-                        'available_modules' => $availableModules,
-                        'in_array' => in_array($m, $availableModules),
-                    ]);
-
                     if (in_array($m, $availableModules)) {
                         $response = $next($request);
                         return $response;
