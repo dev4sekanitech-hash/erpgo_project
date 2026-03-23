@@ -13,7 +13,7 @@ class HomeController extends Controller
 {
     public function Dashboard(Request $request)
     {
-        if(Auth::user()->type === 'superadmin') {
+        if (Auth::user()->type === 'superadmin') {
             return $this->superAdminDashboard();
         }
 
@@ -22,7 +22,8 @@ class HomeController extends Controller
 
     private function superAdminDashboard()
     {
-        $orderData = Order::selectRaw('MONTH(created_at) as month, COUNT(*) as count, SUM(price) as payments')
+        // Use PostgreSQL-compatible EXTRACT function
+        $orderData = Order::selectRaw('EXTRACT(MONTH FROM created_at) as month, COUNT(*) as count, SUM(price) as payments')
             ->whereYear('created_at', now()->year)
             ->groupBy('month')
             ->orderBy('month')
@@ -36,13 +37,13 @@ class HomeController extends Controller
         for ($i = 1; $i <= 12; $i++) {
             if ($isDemo) {
                 $chartData[] = [
-                    'month' => $months[$i-1],
+                    'month' => $months[$i - 1],
                     'orders' => rand(5, 20),
                     'payments' => rand(500, 5000)
                 ];
             } else {
                 $chartData[] = [
-                    'month' => $months[$i-1],
+                    'month' => $months[$i - 1],
                     'orders' => $orderData[$i]->count ?? 0,
                     'payments' => $orderData[$i]->payments ?? 0
                 ];
@@ -69,13 +70,13 @@ class HomeController extends Controller
             foreach (glob($packagesPath . '/*/src/Resources/js/menus/company-menu.ts') as $menuFile) {
                 preg_match('/packages\/workdo\/([^\/]+)\//', $menuFile, $moduleMatch);
                 $moduleName = $moduleMatch[1] ?? null;
-                    $content = file_get_contents($menuFile);
-                    if (preg_match("/parent:\s*['\"]dashboard['\"]/", $content)) {
-                        preg_match("/href:\s*route\(['\"]([^'\"]+)['\"]/", $content, $routeMatch);
-                        preg_match("/permission:\s*['\"]([^'\"]+)['\"]/", $content, $permMatch);
-                        if (!empty($routeMatch[1]) && !empty($permMatch[1]) &&  Module_is_active($moduleName) && Auth::user()->can($permMatch[1])) {
-                            return redirect()->route($routeMatch[1]);
-                        }
+                $content = file_get_contents($menuFile);
+                if (preg_match("/parent:\s*['\"]dashboard['\"]/", $content)) {
+                    preg_match("/href:\s*route\(['\"]([^'\"]+)['\"]/", $content, $routeMatch);
+                    preg_match("/permission:\s*['\"]([^'\"]+)['\"]/", $content, $permMatch);
+                    if (!empty($routeMatch[1]) && !empty($permMatch[1]) &&  Module_is_active($moduleName) && Auth::user()->can($permMatch[1])) {
+                        return redirect()->route($routeMatch[1]);
+                    }
                 }
             }
         }
