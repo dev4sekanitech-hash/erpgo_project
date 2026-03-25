@@ -1,24 +1,18 @@
-import AuthenticatedLayout from "@/layouts/authenticated-layout";
-import { Head } from "@inertiajs/react";
-import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
+import { router, usePage } from '@inertiajs/react';
 
+// This page acts as a routing guard. The server redirects company users to
+// /account (Account module dashboard). This client-side redirect is a safety
+// net in case the server-side redirect does not fire (e.g. package not loaded).
 export default function Dashboard() {
-    const { t } = useTranslation();
-    
-    return (
-        <AuthenticatedLayout
-            header={t('Dashboard')}
-        >
-            <Head title={t('Dashboard')} />
+    const { auth } = usePage().props as any;
+    const userType = auth?.user?.type;
 
-            <div className="flex flex-1 flex-col gap-4 h-full">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="aspect-video rounded-xl bg-muted/50" />
-                    <div className="aspect-video rounded-xl bg-muted/50" />
-                    <div className="aspect-video rounded-xl bg-muted/50" />
-                </div>
-                <div className="flex-1 rounded-xl bg-muted/50 h-full" />
-            </div>
-        </AuthenticatedLayout>
-    );
+    useEffect(() => {
+        if (userType === 'company' || userType === 'staff' || userType === 'vendor' || userType === 'client') {
+            router.visit('/account', { replace: true });
+        }
+    }, [userType]);
+
+    return null;
 }

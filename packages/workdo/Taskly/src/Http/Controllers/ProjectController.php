@@ -178,11 +178,12 @@ class ProjectController extends Controller
                 $monthData = ['name' => $date->format('M')];
 
                 foreach ($taskStages as $stage) {
+                    // duration is stored as "YYYY-MM-DD - YYYY-MM-DD"; match start date
+                    // using LIKE on the ISO prefix — works on both MySQL and PostgreSQL
                     $stageTaskCount = ProjectTask::where('project_id', $project->id)
                         ->where('created_by', creatorId())
                         ->where('stage_id', $stage->id)
-                        ->whereRaw('YEAR(STR_TO_DATE(SUBSTRING_INDEX(duration, " - ", 1), "%Y-%m-%d")) = ?', [$date->year])
-                        ->whereRaw('MONTH(STR_TO_DATE(SUBSTRING_INDEX(duration, " - ", 1), "%Y-%m-%d")) = ?', [$date->month])
+                        ->where('duration', 'like', $date->format('Y-m') . '%')
                         ->count();
                     $monthData[$stage->name] = $stageTaskCount;
                 }

@@ -43,8 +43,7 @@ class DatabaseSeeder extends Seeder
             (new DemoCouponDetailsSeeder())->run($userId);
             (new MessengerSeeder())->run();
 
-             // temporary
-            // (new PackageSeeder())->run($userId);
+            (new PackageSeeder())->run($userId);
 
             // in this seeder product
             (new DemoTransferSeeder())->run($userId);

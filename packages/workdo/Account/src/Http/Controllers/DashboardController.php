@@ -20,23 +20,20 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        if(Auth::user()->can('manage-account-dashboard')){
-            $user = Auth::user();
-            $userType = $user->type;
+        $user = Auth::user();
+        $userType = $user->type;
 
-            switch ($userType) {
-                case 'company':
-                    return $this->companyDashboard();
-                case 'vendor':
-                    return $this->vendorDashboard();
-                case 'client':
-                    return $this->clientDashboard();
-                case 'staff':
-                default:
-                    return $this->staffDashboard();
-            }
+        switch ($userType) {
+            case 'company':
+                return $this->companyDashboard();
+            case 'vendor':
+                return $this->vendorDashboard();
+            case 'client':
+                return $this->clientDashboard();
+            case 'staff':
+            default:
+                return $this->staffDashboard();
         }
-        return back()->with('error', __('Permission denied'));
     }
 
     private function companyDashboard()

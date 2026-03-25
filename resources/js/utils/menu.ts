@@ -13,29 +13,21 @@ const getCoreMenuItems = (userRoles: string[], t: (key: string) => string): NavI
     return getCompanyMenu(t);
 };
 
-// Auto-load package menus based on activated packages
+// Auto-load ALL package menus — independent of activatedPackages/add_ons DB state
 const getPackageMenuItems = (userRoles: string[], activatedPackages: string[], t: (key: string) => string): NavItem[] => {
     const menuItems: NavItem[] = [];
     const menuType = userRoles.includes('superadmin') ? 'superadmin-menu' : 'company-menu';
 
+    // import.meta.glob is resolved at build time — all menu files are bundled regardless of DB
     const allModules = import.meta.glob('../../../packages/workdo/*/src/Resources/js/menus/*.ts', { eager: true });
 
-    // Ensure activatedPackages is an array before iterating
-    if (!Array.isArray(activatedPackages)) {
-        return menuItems;
-    }
-
-    activatedPackages.forEach(packageName => {
-        const menuPath = `../../../packages/workdo/${packageName}/src/Resources/js/menus/${menuType}.ts`;
-        const module = allModules[menuPath] as any;
-
-        if (module) {
-            Object.values(module).forEach((item: any) => {
-                const result = typeof item === 'function' ? item(t) : item;
-                const items = Array.isArray(result) ? result : [result];
-                menuItems.push(...items);
-            });
-        }
+    Object.entries(allModules).forEach(([path, mod]: [string, any]) => {
+        if (!path.endsWith(`/${menuType}.ts`)) return;
+        Object.values(mod).forEach((item: any) => {
+            const result = typeof item === 'function' ? item(t) : item;
+            const items = Array.isArray(result) ? result : [result];
+            menuItems.push(...items);
+        });
     });
 
     return menuItems;
@@ -113,7 +105,8 @@ const filterByPermission = (items: NavItem[], userPermissions: string[]): NavIte
 
         if (item.children) {
             item.children = filterByPermission(item.children, userPermissions);
-            return item.children.length > 0;
+            // Show the parent as long as the parent permission passes —
+            // don't cascade-hide it just because all children were filtered.
         }
 
         return true;
@@ -126,26 +119,34 @@ export const allMenuItems = (): NavItem[] => {
     const { t } = useTranslation();
     const userPermissions = auth?.user?.permissions || [];
     const userRoles = auth?.user?.roles || [];
+    const userType = auth?.user?.type;
     const activatedPackages = auth?.user?.activatedPackages || [];
 
     const coreMenuItems = getCoreMenuItems(userRoles, t);
 
     const packageMenuItems = getPackageMenuItems(userRoles, activatedPackages, t);
-    
+
     const customMenuItems = getCustomMenuItems(userRoles, t);
-    
+
     // Separate custom menus into parents and children
     const customParentMenus = customMenuItems.filter(menu => !menu.parent);
     const customChildMenus = customMenuItems.filter(menu => menu.parent);
-    
+
     // First add custom parent menus to core menus
     const coreWithCustomParents = [...coreMenuItems, ...customParentMenus];
-    
+
     // Then group all children (package + custom children) with their parents
     const allChildMenus = [...packageMenuItems, ...customChildMenus];
     const finalGroupedMenuItems = groupMenusByParent(coreWithCustomParents, allChildMenus);
 
     const sortedMenuItems = finalGroupedMenuItems.sort((a, b) => (a.order || 999) - (b.order || 999));
+
+    // Company owners always see all menu items — permissions only filter staff/other roles.
+    // The company role's Spatie permissions may not include every module-specific permission
+    // (they are seeded per-package), so bypassing the filter here ensures the full menu is shown.
+    if (userType === 'company') {
+        return sortedMenuItems;
+    }
 
     const finalMenuItems = filterByPermission(sortedMenuItems, userPermissions);
 

@@ -216,39 +216,8 @@ if (!function_exists('getImageUrlPrefix')) {
 if (!function_exists('ActivatedModule')) {
     function ActivatedModule($user_id = null)
     {
-        $activated_module = user::$superadmin_activated_module;
-        $user_active_module = [];
-
-        if ($user_id != null) {
-            $user = User::find($user_id);
-        } elseif (Auth::check()) {
-            $user = Auth::user();
-        } else {
-            $user = null;
-        }
-
-        if (!empty($user)) {
-            $available_modules = array_values((new Module())->allEnabled());
-
-            if ($user->type == 'superadmin') {
-                $user_active_module = $available_modules;
-            } else {
-                $active_module = [];
-                if ($user->type != 'company') {
-                    $user = User::find($user->created_by);
-                }
-
-                if ($user) {
-                    $active_module = UserActiveModule::where('user_id', $user->id)->pluck('module')->toArray();
-                    $user_active_module = array_values(array_intersect($available_modules, $active_module));
-                    $user_active_module = array_values(array_unique(array_merge($activated_module,$user_active_module)));
-                }
-            }
-        } else {
-            $active_module = array_values((new Module())->allEnabledAdmin());
-            $user_active_module = $active_module;
-        }
-        return $user_active_module;
+        // Return all modules from add_ons regardless of is_enable status.
+        return AddOn::pluck('module')->toArray();
     }
 }
 
@@ -256,32 +225,8 @@ if (!function_exists('ActivatedModule')) {
 if (!function_exists('Module_is_active')) {
     function Module_is_active($module, $user_id = null)
     {
-        if ((new Module())->has($module)) {
-
-            $isModuleActive = (new Module())->isEnabled($module);
-            if ($isModuleActive == false) {
-                return false;
-            }
-
-            if (!empty($user_id)) {
-                $user = User::find($user_id);
-            } else {
-                $user = Auth::user();
-            }
-            if (!empty($user)) {
-                if ($user->type == 'superadmin') {
-                    return true;
-                } else {
-                    $active_module = ActivatedModule($user->id);
-                    if ((count($active_module) > 0 && in_array($module, $active_module))) {
-                        return true;
-                    }
-                    return false;
-                }
-            }
-            return false;
-        }
-        return false;
+        // Module is active if it exists and is enabled system-wide — no per-user plan check.
+        return (new Module())->has($module) && (new Module())->isEnabled($module);
     }
 }
 

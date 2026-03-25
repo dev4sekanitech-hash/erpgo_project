@@ -9,14 +9,36 @@ class PlanSeeder extends Seeder
 {
     public function run(): void
     {
+        $allModules = [
+            "AIAssistant","Account","Accounting","BudgetPlanner","Calendar","Contract",
+            "DoubleEntry","FormBuilder","Goal","GoogleCaptcha","Hrm","LandingPage","Lead",
+            "Paypal","Performance","Pos","ProductService","Quotation","Recruitment","Slack",
+            "Stripe","SupportTicket","Taskly","Telegram","Timesheet","Training","Twilio",
+            "Webhook","ZoomMeeting",
+        ];
+
         $plans = [
+            [
+                'name' => 'Enterprise',
+                'description' => 'All modules, unlimited users — full access',
+                'number_of_users' => -1,
+                'status' => true,
+                'free_plan' => true,
+                'modules' => $allModules,
+                'package_price_yearly' => 0,
+                'package_price_monthly' => 0,
+                'storage_limit' => 0,
+                'trial' => false,
+                'trial_days' => 0,
+                'created_by' => 1,
+            ],
             [
                 'name' => 'Free Plan',
                 'description' => 'Perfect for getting started with basic features',
                 'number_of_users' => 10,
                 'status' => true,
                 'free_plan' => true,
-                'modules' => ["Taskly","Account","Hrm","Lead","Pos","Stripe","Paypal","AIAssistant","BudgetPlanner","Calendar","Contract","DoubleEntry","FormBuilder","Goal","Performance","Quotation","Recruitment","Slack","SupportTicket","Telegram","Timesheet","Training","Twilio","Webhook","ZoomMeeting"],
+                'modules' => $allModules,
                 'package_price_yearly' => 0,
                 'package_price_monthly' => 0,
                 'trial' => false,
@@ -29,7 +51,7 @@ class PlanSeeder extends Seeder
                 'number_of_users' => 50,
                 'status' => true,
                 'free_plan' => false,
-                'modules' => ["Taskly","Account","Hrm","Lead","Pos","Stripe","BudgetPlanner","Calendar","Contract","DoubleEntry","FormBuilder","Goal","Performance","Quotation","Recruitment","Slack","SupportTicket","Timesheet","Training","Twilio","Webhook","ZoomMeeting"],
+                'modules' => $allModules,
                 'package_price_yearly' => 240,
                 'package_price_monthly' => 25,
                 'trial' => true,
@@ -42,7 +64,7 @@ class PlanSeeder extends Seeder
                 'number_of_users' => 100,
                 'status' => true,
                 'free_plan' => false,
-                'modules' => ["Taskly","Account","Hrm","Lead","Pos","Stripe","Paypal","AIAssistant","BudgetPlanner","Calendar","Contract","DoubleEntry","FormBuilder","Goal","Performance","Quotation","Recruitment","Slack","SupportTicket","Telegram","Timesheet","Training","Twilio","Webhook","ZoomMeeting"],
+                'modules' => $allModules,
                 'package_price_yearly' => 960,
                 'package_price_monthly' => 99,
                 'trial' => true,

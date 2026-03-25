@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Http\Request;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,16 +20,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Trust all proxies (including load balancers) for HTTPS detection
-        Request::setTrustedProxies(
-            ['*'],
-            Request::HEADER_X_FORWARDED_FOR |
-                Request::HEADER_X_FORWARDED_HOST |
-                Request::HEADER_X_FORWARDED_PROTO |
-                Request::HEADER_X_FORWARDED_PORT
-        );
-
-        // Force HTTPS URLs when generating assets
-        \Illuminate\Support\Facades\URL::forceScheme('https');
+        // Company owners (type = 'company') have implicit access to all abilities
+        // within their workspace. Gate::before runs before Spatie permission checks,
+        // so company users pass every can() call in every module controller.
+        // Staff, vendor, and client users are NOT affected — they still go through
+        // the normal Spatie role/permission checks.
+        Gate::before(function ($user, $ability) {
+            if ($user->type === 'company') {
+                return true;
+            }
+        });
     }
 }

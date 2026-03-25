@@ -165,10 +165,10 @@ class DashboardApiController extends Controller
 
     private function getMonthlyData($createdBy)
     {
-        $monthlyData = Ticket::select([DB::raw('MONTH(created_at) as month'), DB::raw('count(*) as total')])
-            ->where('created_at', '>', DB::raw('DATE_SUB(NOW(),INTERVAL 1 YEAR)'))
+        $monthlyData = Ticket::select([DB::raw('EXTRACT(MONTH FROM created_at) as month'), DB::raw('count(*) as total')])
+            ->where('created_at', '>', now()->subYear())
             ->where('created_by', $createdBy)
-            ->groupBy(DB::raw('MONTH(created_at)'))
+            ->groupBy(DB::raw('EXTRACT(MONTH FROM created_at)'))
             ->pluck('total', 'month')->toArray();
 
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -181,10 +181,10 @@ class DashboardApiController extends Controller
 
     private function getMonthlyDataByUser($userId, $field)
     {
-        $barChart = Ticket::select([DB::raw('MONTH(created_at) as month'), DB::raw('count(*) as total')])
-            ->where('created_at', '>', DB::raw('DATE_SUB(NOW(),INTERVAL 1 YEAR)'))
+        $barChart = Ticket::select([DB::raw('EXTRACT(MONTH FROM created_at) as month'), DB::raw('count(*) as total')])
+            ->where('created_at', '>', now()->subYear())
             ->where($field, $userId)
-            ->groupBy(DB::raw('MONTH(created_at)'))
+            ->groupBy(DB::raw('EXTRACT(MONTH FROM created_at)'))
             ->get();
 
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -215,12 +215,12 @@ class DashboardApiController extends Controller
 
     private function getStaffMonthlyDataByUser($userId)
     {
-        $barChart = Ticket::select([DB::raw('MONTH(created_at) as month'), DB::raw('count(*) as total')])
-            ->where('created_at', '>', DB::raw('DATE_SUB(NOW(),INTERVAL 1 YEAR)'))
+        $barChart = Ticket::select([DB::raw('EXTRACT(MONTH FROM created_at) as month'), DB::raw('count(*) as total')])
+            ->where('created_at', '>', now()->subYear())
             ->where(function ($q) use ($userId) {
                 $q->where('creator_id', $userId)->orWhere('user_id', $userId);
             })
-            ->groupBy(DB::raw('MONTH(created_at)'))
+            ->groupBy(DB::raw('EXTRACT(MONTH FROM created_at)'))
             ->get();
 
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

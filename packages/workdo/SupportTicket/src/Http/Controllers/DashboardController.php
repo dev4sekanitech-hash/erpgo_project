@@ -176,12 +176,12 @@ class DashboardController extends Controller
     private function getMonthlyData($createdBy)
     {
         $monthlyData = Ticket::select([
-            DB::raw('MONTH(created_at) as month'),
+            DB::raw('EXTRACT(MONTH FROM created_at) as month'),
             DB::raw('count(*) as total'),
         ])
-            ->where('created_at', '>', DB::raw('DATE_SUB(NOW(),INTERVAL 1 YEAR)'))
+            ->where('created_at', '>', now()->subYear())
             ->where('created_by', $createdBy)
-            ->groupBy(DB::raw('MONTH(created_at)'))
+            ->groupBy(DB::raw('EXTRACT(MONTH FROM created_at)'))
             ->pluck('total', 'month')
             ->toArray();
 
@@ -393,16 +393,16 @@ class DashboardController extends Controller
     private function getMonthlyDataByUser($userId, $field)
     {
         $barChart = Ticket::select([
-            DB::raw('MONTH(created_at) as month'),
+            DB::raw('EXTRACT(MONTH FROM created_at) as month'),
             DB::raw('count(*) as total'),
         ])
-            ->where('created_at', '>', DB::raw('DATE_SUB(NOW(),INTERVAL 1 YEAR)'))
+            ->where('created_at', '>', now()->subYear())
             ->where($field, $userId)
-            ->groupBy(DB::raw('MONTH(created_at)'))
+            ->groupBy(DB::raw('EXTRACT(MONTH FROM created_at)'))
             ->get();
 
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
+
         // Volatile demo trend: Low volume but with natural business 'pulses'
         $demoTrend = [15, 12, 18, 14, 22, 19, 28, 25, 32, 28, 38, 34];
         
@@ -530,19 +530,19 @@ class DashboardController extends Controller
     private function getStaffMonthlyDataByUser($userId)
     {
         $barChart = Ticket::select([
-            DB::raw('MONTH(created_at) as month'),
+            DB::raw('EXTRACT(MONTH FROM created_at) as month'),
             DB::raw('count(*) as total'),
         ])
-            ->where('created_at', '>', DB::raw('DATE_SUB(NOW(),INTERVAL 1 YEAR)'))
+            ->where('created_at', '>', now()->subYear())
             ->where(function ($q) use ($userId) {
                 $q->where('creator_id', $userId)
                     ->orWhere('user_id', $userId);
             })
-            ->groupBy(DB::raw('MONTH(created_at)'))
+            ->groupBy(DB::raw('EXTRACT(MONTH FROM created_at)'))
             ->get();
 
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
+
         // Volatile demo trend: Intermediate ticket volume with clear spikes/dips
         $demoTrend = [22, 18, 28, 24, 35, 30, 42, 38, 50, 45, 60, 54];
         

@@ -25,6 +25,14 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
+# Configure Apache to serve from Laravel's public/ directory.
+# ports.conf is written at runtime in start.sh using the actual $PORT value.
+COPY docker/apache-vhost.conf /etc/apache2/sites-available/000-default.conf
+
+# Copy the startup script
+COPY docker/start.sh /start.sh
+RUN chmod +x /start.sh
+
 # Set working directory
 WORKDIR /var/www/html
 
@@ -40,7 +48,6 @@ RUN if [ ! -f /var/www/html/.env ]; then \
 RUN php artisan key:generate --force || true
 
 # Install PHP dependencies
-# Clean composer cache first
 RUN composer clear-cache && composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
 
 # Set environment variables for build
@@ -48,25 +55,23 @@ ENV APP_ENV=production
 ENV APP_DEBUG=false
 ENV APP_URL=https://erpgo-project-524r.onrender.com
 ENV ASSET_URL=https://erpgo-project-524r.onrender.com
+# Use database sessions so they persist across restarts/redeploys on Render
+ENV SESSION_DRIVER=database
+# Render terminates HTTPS at its proxy — cookies must be marked secure
+ENV SESSION_SECURE_COOKIE=true
 
-# Install Node dependencies and build
-# Install glob explicitly as it's required by vite.config.js
+# Install Node dependencies and build frontend assets
 RUN npm cache clean --force && npm install --legacy-peer-deps --no-audit && npm install glob --save-dev && npm run build
 
 # Set ownership for the entire application to www-data
 RUN chown -R www-data:www-data /var/www/html
 
-# Run migrations during build
+# Run migrations during build (best-effort; also runs at container start)
 RUN php artisan config:clear && php artisan migrate --force || echo "Migration completed or failed"
 
-# Create a startup script that runs migrations and seeds
-RUN echo '#!/bin/bash\nphp artisan config:clear\nphp artisan migrate --force\nphp artisan db:seed --force\ntouch /var/www/html/storage/installed\nln -sf /var/www/html/storage/app/public /var/www/html/public/storage\napache2-foreground' > /start.sh && chmod +x /start.sh
-
-# Configure Apache to listen on port 10000
-RUN echo "Listen 10000" >> /etc/apache2/ports.conf
-
-# Expose port 10000
+# Render injects $PORT at runtime; start.sh configures Apache to listen on it.
+# EXPOSE is a hint only — the actual port is dynamic.
 EXPOSE 10000
 
-# Start the startup script
+# Start via script: runs migrations, seeds, then starts Apache
 CMD ["/start.sh"]
