@@ -1,0 +1,125 @@
+================================================================================
+STARRLIGHT JOB APPLICATION FLOW - "REGISTER + APPLY TOGETHER"
+================================================================================
+
+OVERVIEW:
+---------
+When a user applies for a job on the Starrlight website, they will fill out ONE 
+form that includes both registration info AND job application info. This includes
+uploading their CV/Resume file directly in the same request.
+
+================================================================================
+
+API ENDPOINT:
+-------------
+POST /api/jobs/apply-with-account
+
+CONTENT-TYPE: multipart/form-data
+
+REQUEST BODY (Form Data):
+-------------------------
+{
+    // --- REGISTRATION FIELDS (for creating account) ---
+    "name": "John Doe",                    // Required - Full name
+    "email": "john@example.com",          // Required - Email (also used for login)
+    "password": "securePassword123",      // Required - Password for account
+    "password_confirmation": "securePassword123",  // Required - Confirm password
+
+    // --- JOB APPLICATION FIELDS ---
+    "job_id": 1,                           // Required - Which job they're applying for
+    "phoneNumber": "1234567890",           // Required - Contact phone
+    "city": "Toronto",                    // Required - Current city
+    "province": "ON",                      // Required - Province code (e.g., ON, BC)
+    "additionalInformation": "Any additional notes..."  // Optional
+
+    // --- FILE UPLOAD ---
+    "resume": (binary file)                // Required - CV/Resume file (PDF, DOC, DOCX)
+}
+
+EXPECTED RESPONSE (SUCCESS):
+----------------------------
+{
+    "success": true,
+    "message": "Application submitted and account created successfully",
+    "data": {
+        "user_id": 123,
+        "application_id": "ABC-2026-0001",
+        "resume_url": "/storage/starrlight/resumes/abc123.pdf",
+        "token": "1|abc123xyz...",  // Use this token for future logins
+        "token_type": "Bearer"
+    }
+}
+
+EXPECTED RESPONSE (ERROR - EMAIL EXISTS):
+-----------------------------------------
+{
+    "success": false,
+    "message": "An account with this email already exists. Please login to apply for jobs.",
+    "data": {
+        "existing_account": true
+    }
+}
+
+================================================================================
+
+WHAT HAPPENS ON THE SERVER:
+---------------------------
+1. VALIDATE INPUT
+   - Check all required fields present
+   - Validate email format
+   - Check password meets requirements (min 8 chars)
+   - Validate province code exists
+   - Validate file type (PDF, DOC, DOCX) and size (max 5MB)
+
+2. CHECK IF EMAIL ALREADY EXISTS
+   - If email exists → return error (user can login and apply separately)
+   - If email is new → continue
+
+3. UPLOAD RESUME FILE
+   - Save file to /storage/starrlight/resumes/
+   - Generate unique filename
+   - Store path in database
+
+4. CREATE USER ACCOUNT
+   - Create new user in `users` table
+   - Set type = "candidate"
+   - Set created_by = Starrlight company ID
+   - Hash the password
+
+5. CREATE JOB APPLICATION
+   - Create application in ERP's `job_applications` table
+   - Link to the user (candidate_id)
+   - Link to the job (job_id)
+   - Store resume file path
+   - Set status = "pending"
+
+6. RETURN RESPONSE
+   - Return success with user info
+   - Include authentication token for immediate login
+
+================================================================================
+
+FILE VALIDATION:
+----------------
+- Allowed types: PDF, DOC, DOCX
+- Maximum size: 5MB
+- Stored in: /storage/starrlight/resumes/
+
+================================================================================
+
+DATABASE CHANGES:
+-----------------
+No new tables needed - uses existing:
+- users table (for account)
+- job_applications table (in Recruitment module)
+
+================================================================================
+
+NOTES:
+------
+- This combines registration, file upload, AND application in ONE step
+- If user already exists, they should use the regular /api/auth/login
+  then apply using /api/jobs/:id/apply
+- The file is uploaded directly with the form - no need for separate API call
+
+================================================================================

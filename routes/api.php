@@ -40,6 +40,7 @@ Route::middleware('api.json')->group(function () {
         Route::get('/', [StarrlightJobController::class, 'index']);
         Route::get('/{id}', [StarrlightJobController::class, 'show']);
         Route::post('/{id}/apply', [StarrlightJobController::class, 'apply'])->middleware('auth:sanctum');
+        Route::post('/apply-with-account', [StarrlightJobController::class, 'applyWithAccount']);
     });
 
     // Caregiver Profile (Auth required)

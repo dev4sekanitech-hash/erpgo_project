@@ -188,4 +188,106 @@ class StarrlightJobController extends Controller
             ]
         ], 201);
     }
+
+    /**
+     * Apply for job + Create account in one step
+     * POST /api/jobs/apply-with-account
+     */
+    public function applyWithAccount(Request $request)
+    {
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'job_id' => 'required|integer',
+            'phoneNumber' => 'required|string|max:20',
+            'city' => 'required|string|max:255',
+            'province' => 'required|string|max:2',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
+            'additionalInformation' => 'nullable|string|max:2000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Check if email already exists
+        $existingUser = User::where('email', $request->email)->first();
+        if ($existingUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An account with this email already exists. Please login to apply for jobs.',
+                'data' => [
+                    'existing_account' => true
+                ]
+            ], 400);
+        }
+
+        $companyId = $this->getStarrlightCompanyId();
+
+        if (!$companyId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Company not found'
+            ], 404);
+        }
+
+        // Verify job exists and is active
+        $job = Job::where('id', $request->job_id)
+            ->where('created_by', $companyId)
+            ->where('status', 'active')
+            ->first();
+
+        if (!$job) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Job not found'
+            ], 404);
+        }
+
+        // Upload resume file
+        $resumeFile = $request->file('resume');
+        $filename = 'resume_' . time() . '_' . uniqid() . '.' . $resumeFile->getClientOriginalExtension();
+        $resumePath = $resumeFile->storeAs('starrlight/resumes', $filename, 'public');
+        $resumeUrl = storage_path('app/public/' . $resumePath);
+
+        // Create user account
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => $request->password,
+            'type' => 'candidate',
+            'created_by' => $companyId,
+            'creator_id' => $companyId,
+        ]);
+
+        // Create job application
+        $application = JobApplication::create([
+            'job_id' => $job->id,
+            'candidate_id' => $user->id,
+            'status' => 'pending',
+            'created_by' => $companyId,
+            'resume' => $resumeUrl,
+        ]);
+
+        // Generate authentication token
+        $token = $user->createToken('starrlight-api')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Application submitted and account created successfully',
+            'data' => [
+                'user_id' => $user->id,
+                'application_id' => (string) $application->id,
+                'resume_url' => $resumeUrl,
+                'token' => $token,
+                'token_type' => 'Bearer'
+            ]
+        ], 201);
+    }
 }
